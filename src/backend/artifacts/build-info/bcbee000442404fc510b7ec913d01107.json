@@ -1,0 +1,1951 @@
+{
+  "id": "bcbee000442404fc510b7ec913d01107",
+  "_format": "hh-sol-build-info-1",
+  "solcVersion": "0.8.15",
+  "solcLongVersion": "0.8.15+commit.e14f2714",
+  "input": {
+    "language": "Solidity",
+    "sources": {
+      "src/backend/contracts/CopyrightGraph.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity 0.8.15;\n\nimport \"./interfaces/ICopyrightGraph.sol\";\n\ncontract Test {\n\n}"
+      },
+      "src/backend/contracts/interfaces/ICopyrightGraph.sol": {
+        "content": "// SPDX-License-Identifier: MIT\n\npragma solidity 0.8.15;\n\n/**\n@dev Required interface for copyright master functions and data structure. \nThis code is an interface for a directionally weighted-graph structure. \nIt is a graph because it will use vertices and edges. \nIt is weighted because it will store a metric (for instance, royalty cap model).\nIt is directional because no path will include any two vertices that are the same. \nIn other words, there will be no graph loops.\nFor this interface, all vertices all called tokens and the data stored by a \ntoken is its id, weight, timestamp, and isBlacklisted boolean. All ids\nare non-zero positive tntegers. This is because the zero id will act like a null id.\nFor this interface, all edges have a dynamic array of to destinations and weights so edges can be added to \nthe graph.\nNote the topology of all tokens is immutable when added to the graph.\nThis means that tokens and edge connections are immuable after being added to graph. \nNote that the weight of a token is mutable. \nWhen the owner of a token wants to change its token weight, it can update the number by calling a function.\nNote that the isBlacklisted boolean is mutable. The state of being blacklisted can change. \nToken blacklisting is added in this interface instead of token deletion to save gas fees on chain. \nInstead of deleting a token, a token is instead blacklisted for potential features.\nBased on reasearch from:\nhttps://ethereum.stackexchange.com/questions/78333/efficient-solidity-storage-pattern-for-a-directional-weighted-graph\n@author Elijah Mansur \n@title Interface Copyright Master\n */\ninterface ICopyrightGraph {\n    /**\n    @dev struct to store the edge data 'to' with a 'weight'. An edge points at the next token in the directional graph. \n    This data is immutable unless an edge is removed from the graph. \n     */\n    struct Edge {\n        uint256 to;\n        uint256 weight;\n    }\n\n    /**\n    @dev struct to store a token object with an 'id', 'weight', 'timeStamp', and 'isBlacklisted'. The 'weight' and 'isBlacklisted' in {Token} are mutable. \n    'edge' is an element of {token} to search quickly for edge connections to {token}.\n     */\n    struct Token {\n        uint256 weight;\n        uint256 timeStamp;\n        bool isBlacklisted;\n        Edge[] edge;\n        uint256 numberOfTokensBehind;\n    }\n\n    /**\n    @dev Emitted when a new 'token' is added to the graph at a time. The 'token'\n    is added to the graph as a new node that holds {edge} connections that represent\n    all of the edge connections to 'token'.\n     */\n    event AddTokenToGraph(Token token);\n\n    /**\n    @dev Emitted when the function {changeTokenWeight} is called. 'id' represents \n    the id for which a 'newWeight' was added to {token}.\n     */\n    event ChangeTokenWeight(uint256 id, uint256 newWeight);\n\n    /**\n    @dev Emitted when the function {blacklistToken} is called. A {token} with an 'id' \n    is either blacklisted or unblacklisted. \n     */\n    event TokenBlacklisted(uint256 id, bool isBlacklisted);\n\n    /**\n    @dev Creates a struct {token} that holds the edge connections to its parents. \n    Requirements: \n    -  'id' and 'parentIds' must not be subsets unless 'parentIds' is the zero ID\n    -  'id' must not be zero \n    -   If 'parentIds' is not a set, this function must revert \n    -   If 'parentIds' have not been added to the graph, this function must revert\n     */\n    function insertToken(\n        uint256[] memory parentIds,\n        uint256[] memory parentWeights,\n        uint256 id,\n        uint256 weight\n    ) external;\n\n    /**\n    @dev Makes the edge connections between 'parentIds' and 'id' with an array of 'parentWeights' for each of the\n    'parentIds'. \n    Requirements:  \n    -   'parentIds' and 'id' cannot be the zero token ID \n    -   'id' and 'parentIds' must not be subsets.\n    -    If 'parentIds' is not a set, this function must revert \n    -    If 'parentIds' and 'id' have not been added to the graph, this function must revert\n    -    If a potential edge connection that is to be added is redundant, this function must revert that there is redundant edge connection\n    -    If an edge connection will create a graph loop, this function must revert\n     */\n    function insertEdges(\n        uint256[] memory parentIds,\n        uint256[] memory parentWeights,\n        uint256 id\n    ) external;\n\n    /**\n    @dev changes the weight in a 'token' struct to 'newWeight'\n    Requirements: \n    -   'token' must allready exist in weighted graph\n     */\n    function changeTokenWeight(uint256 id, uint256 newWeight) external;\n\n    /**\n    @dev blacklists a {token} with 'id' to a boolean 'isBlacklisted'\n    Requirements: \n    -   'id' must exist on the weighted graph and not be zero\n     */\n    function blacklistToken(uint256 id, bool isBlacklisted) external;\n\n    /**\n    @dev This function should find all of the 'tokens' in the path behind the chosen 'id' \n    and their 'weights'. How data is saved based on breadth first search is up to the \n    implementer and their application.\n    Requirements: \n    -   'id' must exist on the weighted graph and not be zero\n     */\n   //function bfsTraversal(uint256 id) external;\n\n    // View and Pure Functions\n\n    /**\n    @dev returns if a {token} with 'id' is located on the graph.\n     */\n    function tokenExists(uint256 id) external view returns (bool exists);\n\n    /**\n    @dev Returns the amount of tokens in the graph. \n     */\n    function tokenCount() external view returns (uint256);\n\n    /**\n    @dev Returns the 'id' associated with 'token'. All other functions behave similar with differerent \n    return values. \n    Requirements: \n    -   'token' must exist on graph\n     */\n    function returnId(Token memory token) external pure returns (uint256 id);\n\n    function returnTokenWeight(uint256 id)\n        external\n        view\n        returns (uint256 weight);\n\n    function returnTime(uint256 id)\n        external\n        view\n        returns (uint256 timeStamp);\n\n    function returnIsBlacklisted(uint256 id)\n        external\n        view\n        returns (bool isBlacklisted);\n}"
+      }
+    },
+    "settings": {
+      "optimizer": {
+        "enabled": false,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ],
+          "": [
+            "ast"
+          ]
+        }
+      }
+    }
+  },
+  "output": {
+    "contracts": {
+      "src/backend/contracts/CopyrightGraph.sol": {
+        "Test": {
+          "abi": [],
+          "evm": {
+            "bytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "linkReferences": {},
+              "object": "6080604052348015600f57600080fd5b50603f80601d6000396000f3fe6080604052600080fdfea26469706673582212208222616811ad40f30c3376c88200a82a15cb631415f52ca54c53bdcb04eac7ec64736f6c634300080f0033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE CALLVALUE DUP1 ISZERO PUSH1 0xF JUMPI PUSH1 0x0 DUP1 REVERT JUMPDEST POP PUSH1 0x3F DUP1 PUSH1 0x1D PUSH1 0x0 CODECOPY PUSH1 0x0 RETURN INVALID PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 DUP3 0x22 PUSH2 0x6811 0xAD BLOCKHASH RETURN 0xC CALLER PUSH23 0xC88200A82A15CB631415F52CA54C53BDCB04EAC7EC6473 PUSH16 0x6C634300080F00330000000000000000 ",
+              "sourceMap": "101:18:0:-:0;;;;;;;;;;;;;;;;;;;"
+            },
+            "deployedBytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "6080604052600080fdfea26469706673582212208222616811ad40f30c3376c88200a82a15cb631415f52ca54c53bdcb04eac7ec64736f6c634300080f0033",
+              "opcodes": "PUSH1 0x80 PUSH1 0x40 MSTORE PUSH1 0x0 DUP1 REVERT INVALID LOG2 PUSH5 0x6970667358 0x22 SLT KECCAK256 DUP3 0x22 PUSH2 0x6811 0xAD BLOCKHASH RETURN 0xC CALLER PUSH23 0xC88200A82A15CB631415F52CA54C53BDCB04EAC7EC6473 PUSH16 0x6C634300080F00330000000000000000 ",
+              "sourceMap": "101:18:0:-:0;;;;;"
+            },
+            "methodIdentifiers": {}
+          },
+          "metadata": "{\"compiler\":{\"version\":\"0.8.15+commit.e14f2714\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/backend/contracts/CopyrightGraph.sol\":\"Test\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"src/backend/contracts/CopyrightGraph.sol\":{\"keccak256\":\"0x2c50325915304784b380198730735c0690755bef1722bb6a1296838122340f47\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://3d0dc87b9843ae4029790ab1e47ea2a828ec3a1ef93636b6e1091f481d41bc04\",\"dweb:/ipfs/QmS1JSQ4MLTDTDsoUtX4ptj4RvexX8HB8p9XPFvQ9zTD39\"]},\"src/backend/contracts/interfaces/ICopyrightGraph.sol\":{\"keccak256\":\"0x41de52c27314647da29018e535cf8186e150fe51a54d959d91a547a6cbea8439\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c33382f990f83f513fcf58b42d1c46c4a42fb06d281f862759c8fd4809027145\",\"dweb:/ipfs/Qmddbm34gtvPAYuE1UFDiMitPEpLhMJJKFxyvLW2CdHmSq\"]}},\"version\":1}"
+        }
+      },
+      "src/backend/contracts/interfaces/ICopyrightGraph.sol": {
+        "ICopyrightGraph": {
+          "abi": [
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "weight",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "timeStamp",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "bool",
+                      "name": "isBlacklisted",
+                      "type": "bool"
+                    },
+                    {
+                      "components": [
+                        {
+                          "internalType": "uint256",
+                          "name": "to",
+                          "type": "uint256"
+                        },
+                        {
+                          "internalType": "uint256",
+                          "name": "weight",
+                          "type": "uint256"
+                        }
+                      ],
+                      "internalType": "struct ICopyrightGraph.Edge[]",
+                      "name": "edge",
+                      "type": "tuple[]"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "numberOfTokensBehind",
+                      "type": "uint256"
+                    }
+                  ],
+                  "indexed": false,
+                  "internalType": "struct ICopyrightGraph.Token",
+                  "name": "token",
+                  "type": "tuple"
+                }
+              ],
+              "name": "AddTokenToGraph",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "newWeight",
+                  "type": "uint256"
+                }
+              ],
+              "name": "ChangeTokenWeight",
+              "type": "event"
+            },
+            {
+              "anonymous": false,
+              "inputs": [
+                {
+                  "indexed": false,
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "indexed": false,
+                  "internalType": "bool",
+                  "name": "isBlacklisted",
+                  "type": "bool"
+                }
+              ],
+              "name": "TokenBlacklisted",
+              "type": "event"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "isBlacklisted",
+                  "type": "bool"
+                }
+              ],
+              "name": "blacklistToken",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "newWeight",
+                  "type": "uint256"
+                }
+              ],
+              "name": "changeTokenWeight",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256[]",
+                  "name": "parentIds",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "uint256[]",
+                  "name": "parentWeights",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                }
+              ],
+              "name": "insertEdges",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256[]",
+                  "name": "parentIds",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "uint256[]",
+                  "name": "parentWeights",
+                  "type": "uint256[]"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "weight",
+                  "type": "uint256"
+                }
+              ],
+              "name": "insertToken",
+              "outputs": [],
+              "stateMutability": "nonpayable",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "components": [
+                    {
+                      "internalType": "uint256",
+                      "name": "weight",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "timeStamp",
+                      "type": "uint256"
+                    },
+                    {
+                      "internalType": "bool",
+                      "name": "isBlacklisted",
+                      "type": "bool"
+                    },
+                    {
+                      "components": [
+                        {
+                          "internalType": "uint256",
+                          "name": "to",
+                          "type": "uint256"
+                        },
+                        {
+                          "internalType": "uint256",
+                          "name": "weight",
+                          "type": "uint256"
+                        }
+                      ],
+                      "internalType": "struct ICopyrightGraph.Edge[]",
+                      "name": "edge",
+                      "type": "tuple[]"
+                    },
+                    {
+                      "internalType": "uint256",
+                      "name": "numberOfTokensBehind",
+                      "type": "uint256"
+                    }
+                  ],
+                  "internalType": "struct ICopyrightGraph.Token",
+                  "name": "token",
+                  "type": "tuple"
+                }
+              ],
+              "name": "returnId",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "pure",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                }
+              ],
+              "name": "returnIsBlacklisted",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "isBlacklisted",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                }
+              ],
+              "name": "returnTime",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "timeStamp",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                }
+              ],
+              "name": "returnTokenWeight",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "weight",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [],
+              "name": "tokenCount",
+              "outputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "",
+                  "type": "uint256"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            },
+            {
+              "inputs": [
+                {
+                  "internalType": "uint256",
+                  "name": "id",
+                  "type": "uint256"
+                }
+              ],
+              "name": "tokenExists",
+              "outputs": [
+                {
+                  "internalType": "bool",
+                  "name": "exists",
+                  "type": "bool"
+                }
+              ],
+              "stateMutability": "view",
+              "type": "function"
+            }
+          ],
+          "evm": {
+            "bytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "deployedBytecode": {
+              "functionDebugData": {},
+              "generatedSources": [],
+              "immutableReferences": {},
+              "linkReferences": {},
+              "object": "",
+              "opcodes": "",
+              "sourceMap": ""
+            },
+            "methodIdentifiers": {
+              "blacklistToken(uint256,bool)": "ce8b4afd",
+              "changeTokenWeight(uint256,uint256)": "076fcc1f",
+              "insertEdges(uint256[],uint256[],uint256)": "beae4942",
+              "insertToken(uint256[],uint256[],uint256,uint256)": "866fe41a",
+              "returnId((uint256,uint256,bool,(uint256,uint256)[],uint256))": "0ab71fb1",
+              "returnIsBlacklisted(uint256)": "981ad468",
+              "returnTime(uint256)": "0b8e12fc",
+              "returnTokenWeight(uint256)": "16b407a8",
+              "tokenCount()": "9f181b5e",
+              "tokenExists(uint256)": "00923f9e"
+            }
+          },
+          "metadata": "{\"compiler\":{\"version\":\"0.8.15+commit.e14f2714\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timeStamp\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"isBlacklisted\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"}],\"internalType\":\"struct ICopyrightGraph.Edge[]\",\"name\":\"edge\",\"type\":\"tuple[]\"},{\"internalType\":\"uint256\",\"name\":\"numberOfTokensBehind\",\"type\":\"uint256\"}],\"indexed\":false,\"internalType\":\"struct ICopyrightGraph.Token\",\"name\":\"token\",\"type\":\"tuple\"}],\"name\":\"AddTokenToGraph\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newWeight\",\"type\":\"uint256\"}],\"name\":\"ChangeTokenWeight\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"isBlacklisted\",\"type\":\"bool\"}],\"name\":\"TokenBlacklisted\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"isBlacklisted\",\"type\":\"bool\"}],\"name\":\"blacklistToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"newWeight\",\"type\":\"uint256\"}],\"name\":\"changeTokenWeight\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"parentIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[]\",\"name\":\"parentWeights\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"}],\"name\":\"insertEdges\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"parentIds\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256[]\",\"name\":\"parentWeights\",\"type\":\"uint256[]\"},{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"}],\"name\":\"insertToken\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"timeStamp\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"isBlacklisted\",\"type\":\"bool\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"to\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"}],\"internalType\":\"struct ICopyrightGraph.Edge[]\",\"name\":\"edge\",\"type\":\"tuple[]\"},{\"internalType\":\"uint256\",\"name\":\"numberOfTokensBehind\",\"type\":\"uint256\"}],\"internalType\":\"struct ICopyrightGraph.Token\",\"name\":\"token\",\"type\":\"tuple\"}],\"name\":\"returnId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"}],\"name\":\"returnIsBlacklisted\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"isBlacklisted\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"}],\"name\":\"returnTime\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"timeStamp\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"}],\"name\":\"returnTokenWeight\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"weight\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tokenCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"id\",\"type\":\"uint256\"}],\"name\":\"tokenExists\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"exists\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"Elijah Mansur \",\"details\":\"Required interface for copyright master functions and data structure.  This code is an interface for a directionally weighted-graph structure.  It is a graph because it will use vertices and edges.  It is weighted because it will store a metric (for instance, royalty cap model). It is directional because no path will include any two vertices that are the same.  In other words, there will be no graph loops. For this interface, all vertices all called tokens and the data stored by a  token is its id, weight, timestamp, and isBlacklisted boolean. All ids are non-zero positive tntegers. This is because the zero id will act like a null id. For this interface, all edges have a dynamic array of to destinations and weights so edges can be added to  the graph. Note the topology of all tokens is immutable when added to the graph. This means that tokens and edge connections are immuable after being added to graph.  Note that the weight of a token is mutable.  When the owner of a token wants to change its token weight, it can update the number by calling a function. Note that the isBlacklisted boolean is mutable. The state of being blacklisted can change.  Token blacklisting is added in this interface instead of token deletion to save gas fees on chain.  Instead of deleting a token, a token is instead blacklisted for potential features. Based on reasearch from: https://ethereum.stackexchange.com/questions/78333/efficient-solidity-storage-pattern-for-a-directional-weighted-graph\",\"events\":{\"AddTokenToGraph((uint256,uint256,bool,(uint256,uint256)[],uint256))\":{\"details\":\"Emitted when a new 'token' is added to the graph at a time. The 'token' is added to the graph as a new node that holds {edge} connections that represent all of the edge connections to 'token'.\"},\"ChangeTokenWeight(uint256,uint256)\":{\"details\":\"Emitted when the function {changeTokenWeight} is called. 'id' represents  the id for which a 'newWeight' was added to {token}.\"},\"TokenBlacklisted(uint256,bool)\":{\"details\":\"Emitted when the function {blacklistToken} is called. A {token} with an 'id'  is either blacklisted or unblacklisted. \"}},\"kind\":\"dev\",\"methods\":{\"blacklistToken(uint256,bool)\":{\"details\":\"blacklists a {token} with 'id' to a boolean 'isBlacklisted' Requirements:  -   'id' must exist on the weighted graph and not be zero\"},\"changeTokenWeight(uint256,uint256)\":{\"details\":\"changes the weight in a 'token' struct to 'newWeight' Requirements:  -   'token' must allready exist in weighted graph\"},\"insertEdges(uint256[],uint256[],uint256)\":{\"details\":\"Makes the edge connections between 'parentIds' and 'id' with an array of 'parentWeights' for each of the 'parentIds'.  Requirements:   -   'parentIds' and 'id' cannot be the zero token ID  -   'id' and 'parentIds' must not be subsets. -    If 'parentIds' is not a set, this function must revert  -    If 'parentIds' and 'id' have not been added to the graph, this function must revert -    If a potential edge connection that is to be added is redundant, this function must revert that there is redundant edge connection -    If an edge connection will create a graph loop, this function must revert\"},\"insertToken(uint256[],uint256[],uint256,uint256)\":{\"details\":\"Creates a struct {token} that holds the edge connections to its parents.  Requirements:  -  'id' and 'parentIds' must not be subsets unless 'parentIds' is the zero ID -  'id' must not be zero  -   If 'parentIds' is not a set, this function must revert  -   If 'parentIds' have not been added to the graph, this function must revert\"},\"returnId((uint256,uint256,bool,(uint256,uint256)[],uint256))\":{\"details\":\"Returns the 'id' associated with 'token'. All other functions behave similar with differerent  return values.  Requirements:  -   'token' must exist on graph\"},\"tokenCount()\":{\"details\":\"Returns the amount of tokens in the graph. \"},\"tokenExists(uint256)\":{\"details\":\"returns if a {token} with 'id' is located on the graph.\"}},\"title\":\"Interface Copyright Master\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/backend/contracts/interfaces/ICopyrightGraph.sol\":\"ICopyrightGraph\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"src/backend/contracts/interfaces/ICopyrightGraph.sol\":{\"keccak256\":\"0x41de52c27314647da29018e535cf8186e150fe51a54d959d91a547a6cbea8439\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c33382f990f83f513fcf58b42d1c46c4a42fb06d281f862759c8fd4809027145\",\"dweb:/ipfs/Qmddbm34gtvPAYuE1UFDiMitPEpLhMJJKFxyvLW2CdHmSq\"]}},\"version\":1}"
+        }
+      }
+    },
+    "sources": {
+      "src/backend/contracts/CopyrightGraph.sol": {
+        "ast": {
+          "absolutePath": "src/backend/contracts/CopyrightGraph.sol",
+          "exportedSymbols": {
+            "ICopyrightGraph": [
+              131
+            ],
+            "Test": [
+              3
+            ]
+          },
+          "id": 4,
+          "license": "MIT",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 1,
+              "literals": [
+                "solidity",
+                "0.8",
+                ".15"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "32:23:0"
+            },
+            {
+              "absolutePath": "src/backend/contracts/interfaces/ICopyrightGraph.sol",
+              "file": "./interfaces/ICopyrightGraph.sol",
+              "id": 2,
+              "nameLocation": "-1:-1:-1",
+              "nodeType": "ImportDirective",
+              "scope": 4,
+              "sourceUnit": 132,
+              "src": "57:42:0",
+              "symbolAliases": [],
+              "unitAlias": ""
+            },
+            {
+              "abstract": false,
+              "baseContracts": [],
+              "canonicalName": "Test",
+              "contractDependencies": [],
+              "contractKind": "contract",
+              "fullyImplemented": true,
+              "id": 3,
+              "linearizedBaseContracts": [
+                3
+              ],
+              "name": "Test",
+              "nameLocation": "110:4:0",
+              "nodeType": "ContractDefinition",
+              "nodes": [],
+              "scope": 4,
+              "src": "101:18:0",
+              "usedErrors": []
+            }
+          ],
+          "src": "32:87:0"
+        },
+        "id": 0
+      },
+      "src/backend/contracts/interfaces/ICopyrightGraph.sol": {
+        "ast": {
+          "absolutePath": "src/backend/contracts/interfaces/ICopyrightGraph.sol",
+          "exportedSymbols": {
+            "ICopyrightGraph": [
+              131
+            ]
+          },
+          "id": 132,
+          "license": "MIT",
+          "nodeType": "SourceUnit",
+          "nodes": [
+            {
+              "id": 5,
+              "literals": [
+                "solidity",
+                "0.8",
+                ".15"
+              ],
+              "nodeType": "PragmaDirective",
+              "src": "33:23:1"
+            },
+            {
+              "abstract": false,
+              "baseContracts": [],
+              "canonicalName": "ICopyrightGraph",
+              "contractDependencies": [],
+              "contractKind": "interface",
+              "documentation": {
+                "id": 6,
+                "nodeType": "StructuredDocumentation",
+                "src": "58:1560:1",
+                "text": "@dev Required interface for copyright master functions and data structure. \nThis code is an interface for a directionally weighted-graph structure. \nIt is a graph because it will use vertices and edges. \nIt is weighted because it will store a metric (for instance, royalty cap model).\nIt is directional because no path will include any two vertices that are the same. \nIn other words, there will be no graph loops.\nFor this interface, all vertices all called tokens and the data stored by a \ntoken is its id, weight, timestamp, and isBlacklisted boolean. All ids\nare non-zero positive tntegers. This is because the zero id will act like a null id.\nFor this interface, all edges have a dynamic array of to destinations and weights so edges can be added to \nthe graph.\nNote the topology of all tokens is immutable when added to the graph.\nThis means that tokens and edge connections are immuable after being added to graph. \nNote that the weight of a token is mutable. \nWhen the owner of a token wants to change its token weight, it can update the number by calling a function.\nNote that the isBlacklisted boolean is mutable. The state of being blacklisted can change. \nToken blacklisting is added in this interface instead of token deletion to save gas fees on chain. \nInstead of deleting a token, a token is instead blacklisted for potential features.\nBased on reasearch from:\nhttps://ethereum.stackexchange.com/questions/78333/efficient-solidity-storage-pattern-for-a-directional-weighted-graph\n@author Elijah Mansur \n@title Interface Copyright Master"
+              },
+              "fullyImplemented": false,
+              "id": 131,
+              "linearizedBaseContracts": [
+                131
+              ],
+              "name": "ICopyrightGraph",
+              "nameLocation": "1629:15:1",
+              "nodeType": "ContractDefinition",
+              "nodes": [
+                {
+                  "canonicalName": "ICopyrightGraph.Edge",
+                  "id": 11,
+                  "members": [
+                    {
+                      "constant": false,
+                      "id": 8,
+                      "mutability": "mutable",
+                      "name": "to",
+                      "nameLocation": "1888:2:1",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 11,
+                      "src": "1880:10:1",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 7,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "1880:7:1",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    },
+                    {
+                      "constant": false,
+                      "id": 10,
+                      "mutability": "mutable",
+                      "name": "weight",
+                      "nameLocation": "1908:6:1",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 11,
+                      "src": "1900:14:1",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 9,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "1900:7:1",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "name": "Edge",
+                  "nameLocation": "1865:4:1",
+                  "nodeType": "StructDefinition",
+                  "scope": 131,
+                  "src": "1858:63:1",
+                  "visibility": "public"
+                },
+                {
+                  "canonicalName": "ICopyrightGraph.Token",
+                  "id": 24,
+                  "members": [
+                    {
+                      "constant": false,
+                      "id": 13,
+                      "mutability": "mutable",
+                      "name": "weight",
+                      "nameLocation": "2217:6:1",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 24,
+                      "src": "2209:14:1",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 12,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "2209:7:1",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    },
+                    {
+                      "constant": false,
+                      "id": 15,
+                      "mutability": "mutable",
+                      "name": "timeStamp",
+                      "nameLocation": "2241:9:1",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 24,
+                      "src": "2233:17:1",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 14,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "2233:7:1",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    },
+                    {
+                      "constant": false,
+                      "id": 17,
+                      "mutability": "mutable",
+                      "name": "isBlacklisted",
+                      "nameLocation": "2265:13:1",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 24,
+                      "src": "2260:18:1",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      },
+                      "typeName": {
+                        "id": 16,
+                        "name": "bool",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "2260:4:1",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      "visibility": "internal"
+                    },
+                    {
+                      "constant": false,
+                      "id": 21,
+                      "mutability": "mutable",
+                      "name": "edge",
+                      "nameLocation": "2295:4:1",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 24,
+                      "src": "2288:11:1",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_struct$_Edge_$11_storage_$dyn_storage_ptr",
+                        "typeString": "struct ICopyrightGraph.Edge[]"
+                      },
+                      "typeName": {
+                        "baseType": {
+                          "id": 19,
+                          "nodeType": "UserDefinedTypeName",
+                          "pathNode": {
+                            "id": 18,
+                            "name": "Edge",
+                            "nodeType": "IdentifierPath",
+                            "referencedDeclaration": 11,
+                            "src": "2288:4:1"
+                          },
+                          "referencedDeclaration": 11,
+                          "src": "2288:4:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Edge_$11_storage_ptr",
+                            "typeString": "struct ICopyrightGraph.Edge"
+                          }
+                        },
+                        "id": 20,
+                        "nodeType": "ArrayTypeName",
+                        "src": "2288:6:1",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_struct$_Edge_$11_storage_$dyn_storage_ptr",
+                          "typeString": "struct ICopyrightGraph.Edge[]"
+                        }
+                      },
+                      "visibility": "internal"
+                    },
+                    {
+                      "constant": false,
+                      "id": 23,
+                      "mutability": "mutable",
+                      "name": "numberOfTokensBehind",
+                      "nameLocation": "2317:20:1",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 24,
+                      "src": "2309:28:1",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint256",
+                        "typeString": "uint256"
+                      },
+                      "typeName": {
+                        "id": 22,
+                        "name": "uint256",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "2309:7:1",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "name": "Token",
+                  "nameLocation": "2193:5:1",
+                  "nodeType": "StructDefinition",
+                  "scope": 131,
+                  "src": "2186:158:1",
+                  "visibility": "public"
+                },
+                {
+                  "anonymous": false,
+                  "documentation": {
+                    "id": 25,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "2350:221:1",
+                    "text": "@dev Emitted when a new 'token' is added to the graph at a time. The 'token'\nis added to the graph as a new node that holds {edge} connections that represent\nall of the edge connections to 'token'."
+                  },
+                  "eventSelector": "c2f6c6e42f45a815baef63fdeb6a01c6ab803ac3516fe9eef1360f045be88fdd",
+                  "id": 30,
+                  "name": "AddTokenToGraph",
+                  "nameLocation": "2582:15:1",
+                  "nodeType": "EventDefinition",
+                  "parameters": {
+                    "id": 29,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 28,
+                        "indexed": false,
+                        "mutability": "mutable",
+                        "name": "token",
+                        "nameLocation": "2604:5:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 30,
+                        "src": "2598:11:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Token_$24_memory_ptr",
+                          "typeString": "struct ICopyrightGraph.Token"
+                        },
+                        "typeName": {
+                          "id": 27,
+                          "nodeType": "UserDefinedTypeName",
+                          "pathNode": {
+                            "id": 26,
+                            "name": "Token",
+                            "nodeType": "IdentifierPath",
+                            "referencedDeclaration": 24,
+                            "src": "2598:5:1"
+                          },
+                          "referencedDeclaration": 24,
+                          "src": "2598:5:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Token_$24_storage_ptr",
+                            "typeString": "struct ICopyrightGraph.Token"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "2597:13:1"
+                  },
+                  "src": "2576:35:1"
+                },
+                {
+                  "anonymous": false,
+                  "documentation": {
+                    "id": 31,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "2617:151:1",
+                    "text": "@dev Emitted when the function {changeTokenWeight} is called. 'id' represents \nthe id for which a 'newWeight' was added to {token}."
+                  },
+                  "eventSelector": "306dcd9d741cda4c9394b0b4c8f0663ed5be810002e99651538a59901d9bfd4c",
+                  "id": 37,
+                  "name": "ChangeTokenWeight",
+                  "nameLocation": "2779:17:1",
+                  "nodeType": "EventDefinition",
+                  "parameters": {
+                    "id": 36,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 33,
+                        "indexed": false,
+                        "mutability": "mutable",
+                        "name": "id",
+                        "nameLocation": "2805:2:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 37,
+                        "src": "2797:10:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 32,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "2797:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 35,
+                        "indexed": false,
+                        "mutability": "mutable",
+                        "name": "newWeight",
+                        "nameLocation": "2817:9:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 37,
+                        "src": "2809:17:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 34,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "2809:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "2796:31:1"
+                  },
+                  "src": "2773:55:1"
+                },
+                {
+                  "anonymous": false,
+                  "documentation": {
+                    "id": 38,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "2834:143:1",
+                    "text": "@dev Emitted when the function {blacklistToken} is called. A {token} with an 'id' \nis either blacklisted or unblacklisted. "
+                  },
+                  "eventSelector": "58d9f8973124d959b72fcdfaa4b86d50fe32d266399ceffcbcfb45794ecadec7",
+                  "id": 44,
+                  "name": "TokenBlacklisted",
+                  "nameLocation": "2988:16:1",
+                  "nodeType": "EventDefinition",
+                  "parameters": {
+                    "id": 43,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 40,
+                        "indexed": false,
+                        "mutability": "mutable",
+                        "name": "id",
+                        "nameLocation": "3013:2:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 44,
+                        "src": "3005:10:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 39,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "3005:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 42,
+                        "indexed": false,
+                        "mutability": "mutable",
+                        "name": "isBlacklisted",
+                        "nameLocation": "3022:13:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 44,
+                        "src": "3017:18:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 41,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "3017:4:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "3004:32:1"
+                  },
+                  "src": "2982:55:1"
+                },
+                {
+                  "documentation": {
+                    "id": 45,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "3043:372:1",
+                    "text": "@dev Creates a struct {token} that holds the edge connections to its parents. \nRequirements: \n-  'id' and 'parentIds' must not be subsets unless 'parentIds' is the zero ID\n-  'id' must not be zero \n-   If 'parentIds' is not a set, this function must revert \n-   If 'parentIds' have not been added to the graph, this function must revert"
+                  },
+                  "functionSelector": "866fe41a",
+                  "id": 58,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "insertToken",
+                  "nameLocation": "3429:11:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 56,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 48,
+                        "mutability": "mutable",
+                        "name": "parentIds",
+                        "nameLocation": "3467:9:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 58,
+                        "src": "3450:26:1",
+                        "stateVariable": false,
+                        "storageLocation": "memory",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                          "typeString": "uint256[]"
+                        },
+                        "typeName": {
+                          "baseType": {
+                            "id": 46,
+                            "name": "uint256",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "3450:7:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "id": 47,
+                          "nodeType": "ArrayTypeName",
+                          "src": "3450:9:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                            "typeString": "uint256[]"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 51,
+                        "mutability": "mutable",
+                        "name": "parentWeights",
+                        "nameLocation": "3503:13:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 58,
+                        "src": "3486:30:1",
+                        "stateVariable": false,
+                        "storageLocation": "memory",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                          "typeString": "uint256[]"
+                        },
+                        "typeName": {
+                          "baseType": {
+                            "id": 49,
+                            "name": "uint256",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "3486:7:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "id": 50,
+                          "nodeType": "ArrayTypeName",
+                          "src": "3486:9:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                            "typeString": "uint256[]"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 53,
+                        "mutability": "mutable",
+                        "name": "id",
+                        "nameLocation": "3534:2:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 58,
+                        "src": "3526:10:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 52,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "3526:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 55,
+                        "mutability": "mutable",
+                        "name": "weight",
+                        "nameLocation": "3554:6:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 58,
+                        "src": "3546:14:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 54,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "3546:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "3440:126:1"
+                  },
+                  "returnParameters": {
+                    "id": 57,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "3575:0:1"
+                  },
+                  "scope": 131,
+                  "src": "3420:156:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "documentation": {
+                    "id": 59,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "3582:652:1",
+                    "text": "@dev Makes the edge connections between 'parentIds' and 'id' with an array of 'parentWeights' for each of the\n'parentIds'. \nRequirements:  \n-   'parentIds' and 'id' cannot be the zero token ID \n-   'id' and 'parentIds' must not be subsets.\n-    If 'parentIds' is not a set, this function must revert \n-    If 'parentIds' and 'id' have not been added to the graph, this function must revert\n-    If a potential edge connection that is to be added is redundant, this function must revert that there is redundant edge connection\n-    If an edge connection will create a graph loop, this function must revert"
+                  },
+                  "functionSelector": "beae4942",
+                  "id": 70,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "insertEdges",
+                  "nameLocation": "4248:11:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 68,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 62,
+                        "mutability": "mutable",
+                        "name": "parentIds",
+                        "nameLocation": "4286:9:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 70,
+                        "src": "4269:26:1",
+                        "stateVariable": false,
+                        "storageLocation": "memory",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                          "typeString": "uint256[]"
+                        },
+                        "typeName": {
+                          "baseType": {
+                            "id": 60,
+                            "name": "uint256",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "4269:7:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "id": 61,
+                          "nodeType": "ArrayTypeName",
+                          "src": "4269:9:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                            "typeString": "uint256[]"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 65,
+                        "mutability": "mutable",
+                        "name": "parentWeights",
+                        "nameLocation": "4322:13:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 70,
+                        "src": "4305:30:1",
+                        "stateVariable": false,
+                        "storageLocation": "memory",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_uint256_$dyn_memory_ptr",
+                          "typeString": "uint256[]"
+                        },
+                        "typeName": {
+                          "baseType": {
+                            "id": 63,
+                            "name": "uint256",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "4305:7:1",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint256",
+                              "typeString": "uint256"
+                            }
+                          },
+                          "id": 64,
+                          "nodeType": "ArrayTypeName",
+                          "src": "4305:9:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_uint256_$dyn_storage_ptr",
+                            "typeString": "uint256[]"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 67,
+                        "mutability": "mutable",
+                        "name": "id",
+                        "nameLocation": "4353:2:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 70,
+                        "src": "4345:10:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 66,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "4345:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "4259:102:1"
+                  },
+                  "returnParameters": {
+                    "id": 69,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "4370:0:1"
+                  },
+                  "scope": 131,
+                  "src": "4239:132:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "documentation": {
+                    "id": 71,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "4377:147:1",
+                    "text": "@dev changes the weight in a 'token' struct to 'newWeight'\nRequirements: \n-   'token' must allready exist in weighted graph"
+                  },
+                  "functionSelector": "076fcc1f",
+                  "id": 78,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "changeTokenWeight",
+                  "nameLocation": "4538:17:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 76,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 73,
+                        "mutability": "mutable",
+                        "name": "id",
+                        "nameLocation": "4564:2:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 78,
+                        "src": "4556:10:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 72,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "4556:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 75,
+                        "mutability": "mutable",
+                        "name": "newWeight",
+                        "nameLocation": "4576:9:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 78,
+                        "src": "4568:17:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 74,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "4568:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "4555:31:1"
+                  },
+                  "returnParameters": {
+                    "id": 77,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "4595:0:1"
+                  },
+                  "scope": 131,
+                  "src": "4529:67:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "documentation": {
+                    "id": 79,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "4602:161:1",
+                    "text": "@dev blacklists a {token} with 'id' to a boolean 'isBlacklisted'\nRequirements: \n-   'id' must exist on the weighted graph and not be zero"
+                  },
+                  "functionSelector": "ce8b4afd",
+                  "id": 86,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "blacklistToken",
+                  "nameLocation": "4777:14:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 84,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 81,
+                        "mutability": "mutable",
+                        "name": "id",
+                        "nameLocation": "4800:2:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 86,
+                        "src": "4792:10:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 80,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "4792:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      },
+                      {
+                        "constant": false,
+                        "id": 83,
+                        "mutability": "mutable",
+                        "name": "isBlacklisted",
+                        "nameLocation": "4809:13:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 86,
+                        "src": "4804:18:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 82,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "4804:4:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "4791:32:1"
+                  },
+                  "returnParameters": {
+                    "id": 85,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "4832:0:1"
+                  },
+                  "scope": 131,
+                  "src": "4768:65:1",
+                  "stateMutability": "nonpayable",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "documentation": {
+                    "id": 87,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "5235:76:1",
+                    "text": "@dev returns if a {token} with 'id' is located on the graph."
+                  },
+                  "functionSelector": "00923f9e",
+                  "id": 94,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "tokenExists",
+                  "nameLocation": "5325:11:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 90,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 89,
+                        "mutability": "mutable",
+                        "name": "id",
+                        "nameLocation": "5345:2:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 94,
+                        "src": "5337:10:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 88,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "5337:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5336:12:1"
+                  },
+                  "returnParameters": {
+                    "id": 93,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 92,
+                        "mutability": "mutable",
+                        "name": "exists",
+                        "nameLocation": "5377:6:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 94,
+                        "src": "5372:11:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 91,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "5372:4:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5371:13:1"
+                  },
+                  "scope": 131,
+                  "src": "5316:69:1",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "documentation": {
+                    "id": 95,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "5391:64:1",
+                    "text": "@dev Returns the amount of tokens in the graph. "
+                  },
+                  "functionSelector": "9f181b5e",
+                  "id": 100,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "tokenCount",
+                  "nameLocation": "5469:10:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 96,
+                    "nodeType": "ParameterList",
+                    "parameters": [],
+                    "src": "5479:2:1"
+                  },
+                  "returnParameters": {
+                    "id": 99,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 98,
+                        "mutability": "mutable",
+                        "name": "",
+                        "nameLocation": "-1:-1:-1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 100,
+                        "src": "5505:7:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 97,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "5505:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5504:9:1"
+                  },
+                  "scope": 131,
+                  "src": "5460:54:1",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "documentation": {
+                    "id": 101,
+                    "nodeType": "StructuredDocumentation",
+                    "src": "5520:190:1",
+                    "text": "@dev Returns the 'id' associated with 'token'. All other functions behave similar with differerent \nreturn values. \nRequirements: \n-   'token' must exist on graph"
+                  },
+                  "functionSelector": "0ab71fb1",
+                  "id": 109,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "returnId",
+                  "nameLocation": "5724:8:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 105,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 104,
+                        "mutability": "mutable",
+                        "name": "token",
+                        "nameLocation": "5746:5:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 109,
+                        "src": "5733:18:1",
+                        "stateVariable": false,
+                        "storageLocation": "memory",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_struct$_Token_$24_memory_ptr",
+                          "typeString": "struct ICopyrightGraph.Token"
+                        },
+                        "typeName": {
+                          "id": 103,
+                          "nodeType": "UserDefinedTypeName",
+                          "pathNode": {
+                            "id": 102,
+                            "name": "Token",
+                            "nodeType": "IdentifierPath",
+                            "referencedDeclaration": 24,
+                            "src": "5733:5:1"
+                          },
+                          "referencedDeclaration": 24,
+                          "src": "5733:5:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_struct$_Token_$24_storage_ptr",
+                            "typeString": "struct ICopyrightGraph.Token"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5732:20:1"
+                  },
+                  "returnParameters": {
+                    "id": 108,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 107,
+                        "mutability": "mutable",
+                        "name": "id",
+                        "nameLocation": "5784:2:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 109,
+                        "src": "5776:10:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 106,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "5776:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5775:12:1"
+                  },
+                  "scope": 131,
+                  "src": "5715:73:1",
+                  "stateMutability": "pure",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "functionSelector": "16b407a8",
+                  "id": 116,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "returnTokenWeight",
+                  "nameLocation": "5803:17:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 112,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 111,
+                        "mutability": "mutable",
+                        "name": "id",
+                        "nameLocation": "5829:2:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 116,
+                        "src": "5821:10:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 110,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "5821:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5820:12:1"
+                  },
+                  "returnParameters": {
+                    "id": 115,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 114,
+                        "mutability": "mutable",
+                        "name": "weight",
+                        "nameLocation": "5888:6:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 116,
+                        "src": "5880:14:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 113,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "5880:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5879:16:1"
+                  },
+                  "scope": 131,
+                  "src": "5794:102:1",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "functionSelector": "0b8e12fc",
+                  "id": 123,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "returnTime",
+                  "nameLocation": "5911:10:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 119,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 118,
+                        "mutability": "mutable",
+                        "name": "id",
+                        "nameLocation": "5930:2:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 123,
+                        "src": "5922:10:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 117,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "5922:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5921:12:1"
+                  },
+                  "returnParameters": {
+                    "id": 122,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 121,
+                        "mutability": "mutable",
+                        "name": "timeStamp",
+                        "nameLocation": "5989:9:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 123,
+                        "src": "5981:17:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 120,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "5981:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "5980:19:1"
+                  },
+                  "scope": 131,
+                  "src": "5902:98:1",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "external"
+                },
+                {
+                  "functionSelector": "981ad468",
+                  "id": 130,
+                  "implemented": false,
+                  "kind": "function",
+                  "modifiers": [],
+                  "name": "returnIsBlacklisted",
+                  "nameLocation": "6015:19:1",
+                  "nodeType": "FunctionDefinition",
+                  "parameters": {
+                    "id": 126,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 125,
+                        "mutability": "mutable",
+                        "name": "id",
+                        "nameLocation": "6043:2:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 130,
+                        "src": "6035:10:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint256",
+                          "typeString": "uint256"
+                        },
+                        "typeName": {
+                          "id": 124,
+                          "name": "uint256",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "6035:7:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_uint256",
+                            "typeString": "uint256"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "6034:12:1"
+                  },
+                  "returnParameters": {
+                    "id": 129,
+                    "nodeType": "ParameterList",
+                    "parameters": [
+                      {
+                        "constant": false,
+                        "id": 128,
+                        "mutability": "mutable",
+                        "name": "isBlacklisted",
+                        "nameLocation": "6099:13:1",
+                        "nodeType": "VariableDeclaration",
+                        "scope": 130,
+                        "src": "6094:18:1",
+                        "stateVariable": false,
+                        "storageLocation": "default",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "typeName": {
+                          "id": 127,
+                          "name": "bool",
+                          "nodeType": "ElementaryTypeName",
+                          "src": "6094:4:1",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "visibility": "internal"
+                      }
+                    ],
+                    "src": "6093:20:1"
+                  },
+                  "scope": 131,
+                  "src": "6006:108:1",
+                  "stateMutability": "view",
+                  "virtual": false,
+                  "visibility": "external"
+                }
+              ],
+              "scope": 132,
+              "src": "1619:4497:1",
+              "usedErrors": []
+            }
+          ],
+          "src": "33:6083:1"
+        },
+        "id": 1
+      }
+    }
+  }
+}

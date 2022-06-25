@@ -15,10 +15,10 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 module.exports = {
   solidity: "0.8.15",
   paths: {
-    artifacts: "./artifacts",
-    sources: "./contracts",
-    cache: "./cache",
-    tests: "./test"
+    artifacts: "./src/backend/artifacts",
+    sources: "./src/backend/contracts",
+    cache: "./src/backend/cache",
+    tests: "./src/backend/test"
   },
   defaultNetwork: "localhost",
    networks: {
