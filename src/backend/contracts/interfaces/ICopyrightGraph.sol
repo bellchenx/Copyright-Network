@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// Reference: https://github.com/bellchenx/Fractional-Copyright-Token/blob/v0.1.0/contracts/CopyrightGraph.sol
 
 pragma solidity 0.8.15;
 
