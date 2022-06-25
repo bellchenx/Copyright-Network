@@ -1,6 +1,8 @@
 const { expect } = require("chai");
-const { web3 } = require("hardhat");
+const { web3, artifacts } = require("hardhat");
 const copyrightToken = artifacts.require("CopyrightToken");
+const nft = artifacts.require("ERC721");
+
 
 describe("CopyrightToken", function () {
     let deployer, addr1, addr2, addr3, CopyrightToken;
@@ -12,8 +14,6 @@ describe("CopyrightToken", function () {
 
     describe("Deployment", function () {
         it("should construct ERC721", async function () {
-            console.log(await CopyrightToken.name());
-            console.log(await CopyrightToken.symbol());
             expect(await CopyrightToken.name()).to.equal("Test Copyright Token");
             expect(await CopyrightToken.symbol()).to.equal("TCT");
         })
@@ -28,7 +28,6 @@ describe("CopyrightToken", function () {
             expect(await CopyrightToken.isIndependent(1)).to.equal(true);
             expect(await CopyrightToken.doAllowAdoption(1)).to.equal(false);
             expect(await CopyrightToken.doAllowDistribution(1)).to.equal(false);
-
         })
 
         it("should mint a token with providing parentIDs", async function () {
@@ -63,21 +62,38 @@ describe("CopyrightToken", function () {
             expect(await CopyrightToken.isIndependent(3)).to.equal(true);
         })
 
-        it("should mint a token with correct weight", async function () {
+        it("should mint a token with correct edge", async function () {
             // First token
-            await CopyrightToken.mint([], 1, {from: addr1});
+            await CopyrightToken.mint([], 2, {from: addr1});
             expect(await CopyrightToken.tokenCount().then(b => { return b.toNumber() })).to.equal(1);
             await CopyrightToken.changeAdoptionPermission(1, true, {from: addr1});
+
+            let token1 = await CopyrightToken.getToken(1);
+            expect(token1.tokenWeight).to.equal("2");
 
             // Second token
             await CopyrightToken.mint([1], 2, {from: addr2});
             expect(await CopyrightToken.tokenCount().then(b => { return b.toNumber() })).to.equal(2);
             expect(await CopyrightToken.ownerOf(2)).to.equal(addr2);
-
             
-          
+            let token2 = await CopyrightToken.getToken(2);
+            let edge = token2.edges[0];
+            expect(await edge.to).to.equal("1");
+            expect(await edge.weight).to.equal("2");
         })
     });
 
+    describe("Distribute NFT from NFC", function () {
+        it("should mint new ERC 721", async function () {
+            await CopyrightToken.mint([], 1, {from: addr1});
+            await CopyrightToken.changeDistributionPermission(1, true, {from: addr1});
+
+            await CopyrightToken.setDistributionInfo(1, 'NFTTest', 'NFT', {from: addr1});
+            await CopyrightToken.distributeCopies(1, {from: addr1});
+            let nftAddr = await CopyrightToken.getDistributionToken(1);
+
+            let distributionNFT = await nft.at(nftAddr);
+        })
+    })
 
 });

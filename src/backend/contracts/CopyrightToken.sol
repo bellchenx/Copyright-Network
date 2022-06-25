@@ -14,6 +14,11 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
     mapping(uint256 => bool) private _idToPermissionToDistribute;
     mapping(uint256 => bool) private _idToPermissionToAdapteFrom;
 
+    mapping(uint256 => ERC721) private _distributions;
+
+    mapping(uint256 => string) private _distributionName;
+    mapping(uint256 => string) private _distributionSymbol;
+
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
@@ -63,6 +68,19 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
         }
     }
 
+    function setDistributionInfo(
+        uint256 id,
+        string memory name,
+        string memory symbol
+    ) external {
+        require(
+            ownerOf(id) == msg.sender,
+            "You don't have permission to change info."
+        );
+        _distributionName[id] = name;
+        _distributionSymbol[id] = symbol;
+    }
+
     /**
      * @dev Distribute copies with new ERC 721 token.
      */
@@ -71,8 +89,17 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
             _idToPermissionToDistribute[id],
             "The copyright owner does not allow distribution."
         );
+        require(
+            ownerOf(id) == msg.sender,
+            "You don't have permission to change info."
+        );
 
-        // TODO deploy a new ERC 721 for distribution and return the address
+        ERC721 nftDistribution = new ERC721(
+            _distributionName[id],
+            _distributionSymbol[id]
+        );
+        _distributions[id] = nftDistribution;
+        return address(nftDistribution);
     }
 
     /**
@@ -105,10 +132,14 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
             ownerOf(id) == msg.sender,
             "You don't have permission to change permission."
         );
-        _idToPermissionToAdapteFrom[id] = permission;
+        _idToPermissionToDistribute[id] = permission;
     }
 
     // View functions
+
+    function getToken(uint256 id) external view returns (Token memory) {
+        return _idToTokens[id];
+    }
 
     function isIndependent(uint256 id) external view returns (bool) {
         return _leafTokenIDIndex[id] > 0;
@@ -120,6 +151,30 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
 
     function doAllowDistribution(uint256 id) external view returns (bool) {
         return _idToPermissionToDistribute[id];
+    }
+
+    function isDistributionOf(uint256 id, address nftAddress)
+        external
+        view
+        returns (bool)
+    {
+        return address(_distributions[id]) == nftAddress;
+    }
+
+    function returnLeafTokenIDs()
+        external
+        view
+        returns (uint256[] memory leafTokenIDs)
+    {
+        return _leafTokenIDs;
+    }
+
+    function getDistributionToken(uint256 id)
+        external
+        view
+        returns (ERC721)
+    {
+        return _distributions[id];
     }
 
     // For this demo, for simplicity, we don't need the following methods.
@@ -159,14 +214,6 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
         returns (bool isBlacklisted)
     {
         require(false, "Not implemented yet.");
-    }
-
-    function returnLeafTokenIDs()
-        external
-        view
-        returns (uint256[] memory leafTokenIDs)
-    {
-        return _leafTokenIDs;
     }
 
     function changeTokenWeight(uint256 id, uint256 newWeight) external {

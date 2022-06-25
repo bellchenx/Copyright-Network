@@ -24,7 +24,6 @@ contract MemoryQueue {
         require(last >= first);  // non-empty queue
         id = queue[first];
         if (first == last) isEmpty = true;
-        // is deleting the mapping element the right way to go? 
         delete queue[first];
         // the queue is now empty
         first += 1;

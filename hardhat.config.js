@@ -22,7 +22,10 @@ module.exports = {
   },
   defaultNetwork: "localhost",
    networks: {
-      hardhat: {},
+      hardhat: {
+        // blockGasLimit: 0x1fffffffffffff,
+        // allowUnlimitedContractSize: true,
+      },
       /*
       mumbai: {
          url: process.env.API_URL_MUMBAI,

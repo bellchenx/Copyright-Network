@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/CopyrightToken.sol": {
-      "lastModificationDate": 1656174058763,
-      "contentHash": "a6b9340caac40d490d3af8e9d5d37c76",
+      "lastModificationDate": 1656185651569,
+      "contentHash": "c886ae5efff8b1742f91d85115c2c280",
       "sourceName": "src/backend/contracts/CopyrightToken.sol",
       "solcConfig": {
         "version": "0.8.15",
@@ -404,8 +404,8 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/MemoryQueue.sol": {
-      "lastModificationDate": 1656133025310,
-      "contentHash": "861dca78fec5e8d5d2576f7ed4d13a8a",
+      "lastModificationDate": 1656174356263,
+      "contentHash": "40b74233d477b39ed498e4cb33f3a896",
       "sourceName": "src/backend/contracts/MemoryQueue.sol",
       "solcConfig": {
         "version": "0.8.15",
