@@ -37,8 +37,8 @@
       ]
     },
     "/Users/bell/STProject/Copyright-Network/src/backend/contracts/CopyrightToken.sol": {
-      "lastModificationDate": 1656129039148,
-      "contentHash": "372052407c7fab55942acccfc859ccb7",
+      "lastModificationDate": 1656129833052,
+      "contentHash": "15d53df82821069c5e67cda60ce78b9c",
       "sourceName": "src/backend/contracts/CopyrightToken.sol",
       "solcConfig": {
         "version": "0.8.15",

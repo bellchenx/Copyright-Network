@@ -8,8 +8,14 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
     uint256[] private _leafTokenIDs;
     mapping(uint256 => Token) private _idToTokens;
 
+    /**
+     * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
+     */
     constructor() ERC721("Test Copyright Token", "TCT") {}
 
+    /**
+     * @dev Insert a new copyright token to the copyright graph
+     */
     function insertToken(
         uint256[] memory parentIds,
         uint256[] memory parentWeights,
@@ -17,21 +23,32 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
         uint256 weight
     ) external {}
 
+    /**
+     * @dev Link a array of parents to given copyright token
+     */
     function insertEdges(
         uint256[] memory parentIds,
         uint256[] memory parentWeights,
         uint256 id
     ) external {}
 
-    function returnTokenWeight(uint256 id)
-        external
-        view
-        returns (uint256 weight)
-    {}
+    /**
+     * @dev Deposit revenue to a copyright token
+     */
+    function deposit(uint256 id) external payable {}
+
 
     // For this demo, we don't need the following methods
 
     function returnTime(uint256 id) external view returns (uint256 timeStamp) {
+        require(false, "Not implemented yet");
+    }
+
+    function returnTokenWeight(uint256 id)
+        external
+        view
+        returns (uint256 weight)
+    {
         require(false, "Not implemented yet");
     }
 
