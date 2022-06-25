@@ -5,7 +5,9 @@ import "./interfaces/ICopyrightGraph.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract CopyrightToken is ICopyrightGraph, ERC721 {
+
     uint256 public tokenCount;
+    
     uint256[] private _leafTokenIDs;
     mapping(uint256 => Token) private _idToTokens;
     mapping(uint256 => bool) private _idToPermissionToDistribute;
@@ -17,7 +19,7 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
     constructor() ERC721("Test Copyright Token", "TCT") {}
 
     /**
-     * @dev Insert a new copyright token to the copyright graph
+     * @dev Insert a new copyright token to the copyright graph.
      */
     function mint(uint256[] memory parentIds, uint256 tokenWeight) external {
         uint256 id = tokenCount++;
@@ -46,6 +48,9 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
         }
     }
 
+    /**
+     * @dev Distribute copies with new ERC 721 token.
+     */
     function distributeCopies(uint256 id) external returns (address) {
         require(
             _idToPermissionToDistribute[id],
@@ -56,12 +61,12 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
     }
 
     /**
-     * @dev Deposit revenue to a copyright token
+     * @dev Deposit revenue to a copyright token and all inheriting copyright owners.
      */
     function deposit(uint256 id) external payable {
         require(_exists(id), "The token you make deposit to does not exist.");
         
-        // TODO deposit and distribute the revenue. Use BFS.
+        // TODO deposit and distribute the revenue. Use BFS and memory queue.
     }
 
     // For this demo, for simplicity, we don't need the following methods.

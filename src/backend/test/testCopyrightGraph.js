@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { web3 } = require("hardhat");
 const copyrightGraph = artifacts.require("CopyrightToken");
 
-describe("CopyrightGraph", function () {
+describe("CopyrightToken", function () {
     let deployer, addr1, addr2, addr3, CopyrightGraph;
     
     beforeEach(async function () {
