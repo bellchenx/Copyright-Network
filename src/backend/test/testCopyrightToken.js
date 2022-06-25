@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { web3, artifacts } = require("hardhat");
 const copyrightToken = artifacts.require("CopyrightToken");
-const nft = artifacts.require("ERC721");
+const nft = artifacts.require("ERC721CopyDistribution");
 
 
 describe("CopyrightToken", function () {
@@ -88,11 +88,12 @@ describe("CopyrightToken", function () {
             await CopyrightToken.mint([], 1, {from: addr1});
             await CopyrightToken.changeDistributionPermission(1, true, {from: addr1});
 
-            await CopyrightToken.setDistributionInfo(1, 'NFTTest', 'NFT', {from: addr1});
+            await CopyrightToken.setDistributionInfo(1, 'NFTTest', 'NFT', 'test', {from: addr1});
             await CopyrightToken.distributeCopies(1, {from: addr1});
             let nftAddr = await CopyrightToken.getDistributionToken(1);
 
             let distributionNFT = await nft.at(nftAddr);
+            expect(await distributionNFT.contractURI()).to.equal("test");
         })
     })
 

@@ -2,6 +2,7 @@
 pragma solidity 0.8.15;
 
 import "./interfaces/ICopyrightGraph.sol";
+import "./ERC721CopyDistribution.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract CopyrightToken is ICopyrightGraph, ERC721 {
@@ -14,10 +15,11 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
     mapping(uint256 => bool) private _idToPermissionToDistribute;
     mapping(uint256 => bool) private _idToPermissionToAdapteFrom;
 
-    mapping(uint256 => ERC721) private _distributions;
+    mapping(uint256 => ERC721CopyDistribution) private _distributions;
 
     mapping(uint256 => string) private _distributionName;
     mapping(uint256 => string) private _distributionSymbol;
+    mapping(uint256 => string) private _distributionURI;
 
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
@@ -71,7 +73,8 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
     function setDistributionInfo(
         uint256 id,
         string memory name,
-        string memory symbol
+        string memory symbol,
+        string memory uri
     ) external {
         require(
             ownerOf(id) == msg.sender,
@@ -79,6 +82,7 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
         );
         _distributionName[id] = name;
         _distributionSymbol[id] = symbol;
+        _distributionURI[id] = uri;
     }
 
     /**
@@ -94,9 +98,10 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
             "You don't have permission to change info."
         );
 
-        ERC721 nftDistribution = new ERC721(
+        ERC721CopyDistribution nftDistribution = new ERC721CopyDistribution(
             _distributionName[id],
-            _distributionSymbol[id]
+            _distributionSymbol[id],
+            _distributionURI[id]
         );
         _distributions[id] = nftDistribution;
         return address(nftDistribution);
