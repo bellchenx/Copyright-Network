@@ -10,7 +10,7 @@
           "components": [
             {
               "internalType": "uint256",
-              "name": "weight",
+              "name": "tokenWeight",
               "type": "uint256"
             },
             {
@@ -37,7 +37,7 @@
                 }
               ],
               "internalType": "struct ICopyrightGraph.Edge[]",
-              "name": "edge",
+              "name": "edges",
               "type": "tuple[]"
             },
             {
@@ -186,7 +186,7 @@
           "components": [
             {
               "internalType": "uint256",
-              "name": "weight",
+              "name": "tokenWeight",
               "type": "uint256"
             },
             {
@@ -213,7 +213,7 @@
                 }
               ],
               "internalType": "struct ICopyrightGraph.Edge[]",
-              "name": "edge",
+              "name": "edges",
               "type": "tuple[]"
             },
             {

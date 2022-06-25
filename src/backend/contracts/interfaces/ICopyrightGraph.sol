@@ -41,10 +41,10 @@ interface ICopyrightGraph {
     'edge' is an element of {token} to search quickly for edge connections to {token}.
      */
     struct Token {
-        uint256 weight;
+        uint256 tokenWeight;
         uint256 timeStamp;
         bool isBlacklisted;
-        Edge[] edge;
+        Edge[] edges;
         uint256 numberOfTokensBehind;
     }
 

@@ -1,3 +1,7 @@
+# Hardhat
+src/backend/artifacts/
+src/backend/cache/
+
 # Logs
 logs
 *.log

@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/bell/STProject/Copyright-Network/src/backend/contracts/CopyrightGraph.sol": {
-      "lastModificationDate": 1656125012688,
-      "contentHash": "5c445754a310396109b5f59eeaed5807",
+      "lastModificationDate": 1656127490744,
+      "contentHash": "534f931f1a71f5188f59bd88a3af1fd9",
       "sourceName": "src/backend/contracts/CopyrightGraph.sol",
       "solcConfig": {
         "version": "0.8.15",
@@ -35,12 +35,12 @@
         "0.8.15"
       ],
       "artifacts": [
-        "Test"
+        "CopyrightGraphForERC721"
       ]
     },
     "/Users/bell/STProject/Copyright-Network/src/backend/contracts/interfaces/ICopyrightGraph.sol": {
-      "lastModificationDate": 1656125008573,
-      "contentHash": "1cda7970f22cc1c7af07e3df914e3498",
+      "lastModificationDate": 1656126754066,
+      "contentHash": "5026c5bdd86a3b401a0f353c8f049dbb",
       "sourceName": "src/backend/contracts/interfaces/ICopyrightGraph.sol",
       "solcConfig": {
         "version": "0.8.15",
