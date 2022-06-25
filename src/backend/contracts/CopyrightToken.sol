@@ -5,7 +5,6 @@ import "./interfaces/ICopyrightGraph.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract CopyrightToken is ICopyrightGraph, ERC721 {
-
     uint256 public tokenCount;
 
     uint256[] private _leafTokenIDs;
@@ -18,13 +17,15 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
-    constructor() ERC721("Test Copyright Token", "TCT") {}
+    constructor() ERC721("Test Copyright Token", "TCT") {
+        _leafTokenIDs.push(0); // placeholder for the 0 index
+    }
 
     /**
      * @dev Insert a new copyright token to the copyright graph.
      */
     function mint(uint256[] memory parentIds, uint256 tokenWeight) external {
-        uint256 id = tokenCount++;
+        uint256 id = ++tokenCount;
         _safeMint(_msgSender(), id);
         _idToTokens[id].tokenWeight = tokenWeight;
         _idToTokens[id].timeStamp = block.timestamp;
@@ -38,7 +39,7 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
             );
         }
 
-        if(parentIds.length > 0) {
+        if (parentIds.length > 0) {
             for (uint256 i = 0; i < parentIds.length; i++) {
                 uint256 parentID = parentIds[i];
                 Edge memory newEdge = Edge(
@@ -48,17 +49,17 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
                 _idToTokens[tokenCount].edges.push(newEdge);
                 _idToTokens[tokenCount].numberOfTokensBehind++;
 
-                if(_leafTokenIDIndex[parentID] == 0 && _leafTokenIDIndex[id] != 0)
-                {
-                    _leafTokenIDIndex[id] = _leafTokenIDIndex[parentID];
+                if (_leafTokenIDIndex[parentID] != 0) {
+                    uint256 parentIdx = _leafTokenIDIndex[parentID];
                     _leafTokenIDIndex[parentID] = 0;
-                    _leafTokenIDs[_leafTokenIDIndex[id]] = id;
+
+                    _leafTokenIDIndex[id] = parentIdx;
+                    _leafTokenIDs[parentIdx] = id;
                 }
             }
-        }
-        else {
+        } else {
             _leafTokenIDs.push(id);
-            _leafTokenIDIndex[id] = _leafTokenIDs.length;
+            _leafTokenIDIndex[id] = _leafTokenIDs.length - 1;
         }
     }
 
@@ -79,8 +80,46 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
      */
     function deposit(uint256 id) external payable {
         require(_exists(id), "The token you make deposit to does not exist.");
-        
+
         // TODO deposit and distribute the revenue. Use BFS and memory queue.
+    }
+
+    /**
+     * @dev Change the permission of adoption from this copyright
+     */
+    function changeAdoptionPermission(uint256 id, bool permission) external {
+        require(
+            ownerOf(id) == msg.sender,
+            "You don't have permission to change permission."
+        );
+        _idToPermissionToAdapteFrom[id] = permission;
+    }
+
+    /**
+     * @dev Change the permission of distrubute copies as NFT from this copyright
+     */
+    function changeDistributionPermission(uint256 id, bool permission)
+        external
+    {
+        require(
+            ownerOf(id) == msg.sender,
+            "You don't have permission to change permission."
+        );
+        _idToPermissionToAdapteFrom[id] = permission;
+    }
+
+    // View functions
+
+    function isIndependent(uint256 id) external view returns (bool) {
+        return _leafTokenIDIndex[id] > 0;
+    }
+
+    function doAllowAdoption(uint256 id) external view returns (bool) {
+        return _idToPermissionToAdapteFrom[id];
+    }
+
+    function doAllowDistribution(uint256 id) external view returns (bool) {
+        return _idToPermissionToDistribute[id];
     }
 
     // For this demo, for simplicity, we don't need the following methods.
