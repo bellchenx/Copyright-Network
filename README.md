@@ -1,1 +1,1 @@
-# Non-Fungible-Copyright-Token
+# Non-Fungible Copyright Token
