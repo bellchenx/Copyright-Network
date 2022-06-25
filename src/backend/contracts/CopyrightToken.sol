@@ -2,10 +2,13 @@
 pragma solidity 0.8.15;
 
 import "./interfaces/ICopyrightGraph.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract CopyrightGraphForERC721 is ICopyrightGraph {
-    uint256[] public _tokenIDs;
-    mapping(uint256 => Token) public _tokens;
+contract CopyrightToken is ICopyrightGraph, ERC721 {
+    uint256[] private _leafTokenIDs;
+    mapping(uint256 => Token) private _idToTokens;
+
+    constructor() ERC721("Test Copyright Token", "TCT") {}
 
     function insertToken(
         uint256[] memory parentIds,
@@ -26,7 +29,6 @@ contract CopyrightGraphForERC721 is ICopyrightGraph {
         returns (uint256 weight)
     {}
 
-
     // For this demo, we don't need the following methods
 
     function returnTime(uint256 id) external view returns (uint256 timeStamp) {
@@ -41,12 +43,12 @@ contract CopyrightGraphForERC721 is ICopyrightGraph {
         require(false, "Not implemented yet");
     }
 
-    function returnArrayOfTokenLeafs()
+    function returnLeafTokenIDs()
         external
         view
         returns (uint256[] memory leafTokenIDs)
     {
-        return _tokenIDs;
+        return _leafTokenIDs;
     }
 
     function changeTokenWeight(uint256 id, uint256 newWeight) external {
