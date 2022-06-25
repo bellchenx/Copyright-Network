@@ -1,21 +1,30 @@
 const { expect } = require("chai");
 const { web3 } = require("hardhat");
-const copyrightGraph = artifacts.require("CopyrightToken");
+const copyrightToken = artifacts.require("CopyrightToken");
 
 describe("CopyrightToken", function () {
-    let deployer, addr1, addr2, addr3, CopyrightGraph;
+    let deployer, addr1, addr2, addr3, CopyrightToken;
     
     beforeEach(async function () {
         [deployer, addr1, addr2, addr3] = await web3.eth.getAccounts();
-        CopyrightGraph = await copyrightGraph.new();
+        CopyrightToken = await copyrightToken.new();
     });
 
     describe("Deployment", function () {
         it("should construct ERC721", async function () {
-            console.log(await CopyrightGraph.name());
-            console.log(await CopyrightGraph.symbol());
-            expect(await CopyrightGraph.name()).to.equal("Test Copyright Token");
-            expect(await CopyrightGraph.symbol()).to.equal("TCT");
+            console.log(await CopyrightToken.name());
+            console.log(await CopyrightToken.symbol());
+            expect(await CopyrightToken.name()).to.equal("Test Copyright Token");
+            expect(await CopyrightToken.symbol()).to.equal("TCT");
         })
     });
+
+    describe("Mint copyright token", function () {
+        it("should mint a token without providing parentIDs", async function () {
+            await CopyrightToken.mint([], 1, {from: addr1});
+            expect(await CopyrightToken.tokenCount().toNumber()).to.equal(1);
+        })
+    });
+
+
 });

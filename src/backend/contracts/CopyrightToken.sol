@@ -7,8 +7,10 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 contract CopyrightToken is ICopyrightGraph, ERC721 {
 
     uint256 public tokenCount;
-    
+
     uint256[] private _leafTokenIDs;
+    mapping(uint256 => uint256) private _leafTokenIDIndex;
+
     mapping(uint256 => Token) private _idToTokens;
     mapping(uint256 => bool) private _idToPermissionToDistribute;
     mapping(uint256 => bool) private _idToPermissionToAdapteFrom;
@@ -36,15 +38,27 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
             );
         }
 
-        for (uint256 i = 0; i < parentIds.length; i++) {
-            Edge memory newEdge = Edge(
-                parentIds[i],
-                _idToTokens[parentIds[i]].tokenWeight
-            );
-            _idToTokens[tokenCount].edges.push(newEdge);
-            _idToTokens[tokenCount].numberOfTokensBehind++;
+        if(parentIds.length > 0) {
+            for (uint256 i = 0; i < parentIds.length; i++) {
+                uint256 parentID = parentIds[i];
+                Edge memory newEdge = Edge(
+                    parentID,
+                    _idToTokens[parentID].tokenWeight
+                );
+                _idToTokens[tokenCount].edges.push(newEdge);
+                _idToTokens[tokenCount].numberOfTokensBehind++;
 
-            // TODO if parent id is in leaf node array, replace with this node.
+                if(_leafTokenIDIndex[parentID] == 0 && _leafTokenIDIndex[id] != 0)
+                {
+                    _leafTokenIDIndex[id] = _leafTokenIDIndex[parentID];
+                    _leafTokenIDIndex[parentID] = 0;
+                    _leafTokenIDs[_leafTokenIDIndex[id]] = id;
+                }
+            }
+        }
+        else {
+            _leafTokenIDs.push(id);
+            _leafTokenIDIndex[id] = _leafTokenIDs.length;
         }
     }
 
