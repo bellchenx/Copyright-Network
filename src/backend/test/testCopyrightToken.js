@@ -97,46 +97,46 @@ describe("CopyrightToken", function () {
         })
     })
 
-    describe("Royalty network deposit test", function () {
-        it("should deposit to single copyright token", async function () {
-            await CopyrightToken.mint([], 2, {from: addr1});
+    // describe("Royalty network deposit test", function () {
+    //     it("should deposit to single copyright token", async function () {
+    //         await CopyrightToken.mint([], 2, {from: addr1});
 
-            let previousBalance = await web3.eth.getBalance(addr1);
-            await CopyrightToken.deposit(1, {from: addr2, value: 100000000000}); 
-            let currentBalance = await web3.eth.getBalance(addr1);
+    //         let previousBalance = await web3.eth.getBalance(addr1);
+    //         await CopyrightToken.deposit(1, {from: addr2, value: 100000000000}); 
+    //         let currentBalance = await web3.eth.getBalance(addr1);
 
-            expect(currentBalance - previousBalance - 100000000000).to.lessThan(1000000);
-        })
+    //         expect(currentBalance - previousBalance - 100000000000).to.lessThan(1000000);
+    //     })
 
-        it("should deposit to a network copyright token", async function () {
-            // First token
-            await CopyrightToken.mint([], 0, {from: addr1});
-            console.log(await CopyrightToken.ownerOf(1) == addr1);
-            await CopyrightToken.changeAdoptionPermission(1, true, {from: addr1});
+    //     it("should deposit to a network copyright token", async function () {
+    //         // First token
+    //         await CopyrightToken.mint([], 0, {from: addr1});
+    //         console.log(await CopyrightToken.ownerOf(1) == addr1);
+    //         await CopyrightToken.changeAdoptionPermission(1, true, {from: addr1});
 
-            // Second token
-            await CopyrightToken.mint([1], 0, {from: addr2});
-            console.log(await CopyrightToken.ownerOf(2) == addr2);
-            await CopyrightToken.changeAdoptionPermission(2, true, {from: addr2});
+    //         // Second token
+    //         await CopyrightToken.mint([1], 0, {from: addr2});
+    //         console.log(await CopyrightToken.ownerOf(2) == addr2);
+    //         await CopyrightToken.changeAdoptionPermission(2, true, {from: addr2});
 
-            // Third token
-            await CopyrightToken.mint([1, 2], 0, {from: addr3});
-            console.log(await CopyrightToken.ownerOf(3) == addr3);
+    //         // Third token
+    //         await CopyrightToken.mint([1, 2], 0, {from: addr3});
+    //         console.log(await CopyrightToken.ownerOf(3) == addr3);
 
-            let preBalance1 = await web3.eth.getBalance(addr1);
-            let preBalance2 = await web3.eth.getBalance(addr2);
-            let preBalance3 = await web3.eth.getBalance(addr3);
+    //         let preBalance1 = await web3.eth.getBalance(addr1);
+    //         let preBalance2 = await web3.eth.getBalance(addr2);
+    //         let preBalance3 = await web3.eth.getBalance(addr3);
 
-            await CopyrightToken.deposit(3, {from: deployer, value: 200000000000});
+    //         await CopyrightToken.deposit(3, {from: deployer, value: 200000000000});
 
-            let currBalance1 = await web3.eth.getBalance(addr1);
-            let currBalance2 = await web3.eth.getBalance(addr2);
-            let currBalance3 = await web3.eth.getBalance(addr3);
+    //         let currBalance1 = await web3.eth.getBalance(addr1);
+    //         let currBalance2 = await web3.eth.getBalance(addr2);
+    //         let currBalance3 = await web3.eth.getBalance(addr3);
 
-            console.log(currBalance1 - preBalance1);
-            console.log(currBalance2 - preBalance2);
-            console.log(currBalance3 - preBalance3);
-        })
-    });
+    //         console.log(currBalance1 - preBalance1);
+    //         console.log(currBalance2 - preBalance2);
+    //         console.log(currBalance3 - preBalance3);
+    //     })
+    // });
 
 });

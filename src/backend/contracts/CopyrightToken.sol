@@ -3,8 +3,6 @@ pragma solidity 0.8.15;
 
 import "./interfaces/ICopyrightGraph.sol";
 import "./ERC721CopyDistribution.sol";
-import "./utils/MemoryStack.sol";
-import "./utils/MemoryQueue.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
@@ -112,52 +110,52 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
         return address(nftDistribution);
     }
 
-    /**
-     * @dev Deposit revenue to a copyright token and all inheriting copyright owners.
-     */
-    function deposit(uint256 id) external payable {
-        require(_exists(id), "The token you make deposit to does not exist.");
+    // /**
+    //  * @dev Deposit revenue to a copyright token and all inheriting copyright owners.
+    //  */
+    // function deposit(uint256 id) external payable {
+    //     require(_exists(id), "The token you make deposit to does not exist.");
 
-        MemoryQueue queue = new MemoryQueue();
-        MemoryStack idStack = new MemoryStack();
-        MemoryStack royaltyStack = new MemoryStack();
+    //     MemoryQueue queue = new MemoryQueue();
+    //     MemoryStack idStack = new MemoryStack();
+    //     MemoryStack royaltyStack = new MemoryStack();
 
-        queue.enqueue(id);
+    //     queue.enqueue(id);
 
-        while (!queue.isEmpty()) {
-            uint256 tempID = queue.dequeue();
+    //     while (!queue.isEmpty()) {
+    //         uint256 tempID = queue.dequeue();
 
-            Token memory token = _idToTokens[tempID];
-            Edge[] memory edges = token.edges;
+    //         Token memory token = _idToTokens[tempID];
+    //         Edge[] memory edges = token.edges;
 
-            for (uint256 i = 0; i < edges.length; i++) {
-                uint256 royalty = edges[i].weight;
-                uint256 nextID = edges[i].to;
+    //         for (uint256 i = 0; i < edges.length; i++) {
+    //             uint256 royalty = edges[i].weight;
+    //             uint256 nextID = edges[i].to;
 
-                queue.enqueue(nextID);
+    //             queue.enqueue(nextID);
 
-                idStack.push(nextID);
-                royaltyStack.push(royalty);
-            }
-        }
+    //             idStack.push(nextID);
+    //             royaltyStack.push(royalty);
+    //         }
+    //     }
 
-        uint256 outstandingBalance = msg.value;
-        while (!idStack.isEmpty()) {
-            uint256 nextID = idStack.pop();
-            uint256 payment = royaltyStack.pop();
+    //     uint256 outstandingBalance = msg.value;
+    //     while (!idStack.isEmpty()) {
+    //         uint256 nextID = idStack.pop();
+    //         uint256 payment = royaltyStack.pop();
 
-            if (outstandingBalance < payment) {
-                payment = outstandingBalance;
-                payable(ownerOf(nextID)).transfer(payment);
-                break;
-            } else {
-                outstandingBalance -= payment;
-                payable(ownerOf(nextID)).transfer(payment);
-            }
-        }
-        if (outstandingBalance > 0)
-            payable(ownerOf(id)).transfer(outstandingBalance);
-    }
+    //         if (outstandingBalance < payment) {
+    //             payment = outstandingBalance;
+    //             payable(ownerOf(nextID)).transfer(payment);
+    //             break;
+    //         } else {
+    //             outstandingBalance -= payment;
+    //             payable(ownerOf(nextID)).transfer(payment);
+    //         }
+    //     }
+    //     if (outstandingBalance > 0)
+    //         payable(ownerOf(id)).transfer(outstandingBalance);
+    // }
 
     /**
      * @dev Change the permission of adoption from this copyright
