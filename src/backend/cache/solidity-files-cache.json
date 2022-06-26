@@ -2,14 +2,14 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/CopyrightToken.sol": {
-      "lastModificationDate": 1656212221350,
-      "contentHash": "127e59c9a8a27701b850b73c93944431",
+      "lastModificationDate": 1656215503664,
+      "contentHash": "c5e1a0710895237bf1094aee670c9339",
       "sourceName": "src/backend/contracts/CopyrightToken.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -43,14 +43,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/interfaces/ICopyrightGraph.sol": {
-      "lastModificationDate": 1656133025310,
+      "lastModificationDate": 1656171121855,
       "contentHash": "cc561fa5cb026b5344a3328ed5287fd8",
       "sourceName": "src/backend/contracts/interfaces/ICopyrightGraph.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -78,14 +78,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol": {
-      "lastModificationDate": 1656170306906,
+      "lastModificationDate": 1656186412502,
       "contentHash": "21b9f3bdb3e60f56ea81361c37420136",
       "sourceName": "@openzeppelin/contracts/token/ERC721/ERC721.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -121,14 +121,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol": {
-      "lastModificationDate": 1656170307342,
+      "lastModificationDate": 1656186412906,
       "contentHash": "cd8e72e5859bddd5fd26b2fb5c51c846",
       "sourceName": "@openzeppelin/contracts/token/ERC721/IERC721.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -158,14 +158,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol": {
-      "lastModificationDate": 1656170307367,
+      "lastModificationDate": 1656186412923,
       "contentHash": "c22d4395e33763de693fd440c6fd10e1",
       "sourceName": "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -193,14 +193,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/node_modules/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol": {
-      "lastModificationDate": 1656170307356,
+      "lastModificationDate": 1656186412916,
       "contentHash": "efbc0d15b80a74e34dbe8da0f3e879bb",
       "sourceName": "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -230,14 +230,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/node_modules/@openzeppelin/contracts/utils/Address.sol": {
-      "lastModificationDate": 1656170306359,
+      "lastModificationDate": 1656186411911,
       "contentHash": "ad714a6368ee7d43cded6bbe8af0b155",
       "sourceName": "@openzeppelin/contracts/utils/Address.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -265,14 +265,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/node_modules/@openzeppelin/contracts/utils/Context.sol": {
-      "lastModificationDate": 1656170306443,
+      "lastModificationDate": 1656186411975,
       "contentHash": "5f2c5c4b6af2dd4551027144797bc8be",
       "sourceName": "@openzeppelin/contracts/utils/Context.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -300,14 +300,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/node_modules/@openzeppelin/contracts/utils/Strings.sol": {
-      "lastModificationDate": 1656170307635,
+      "lastModificationDate": 1656186413160,
       "contentHash": "9c54c6c065d9e590fdcdd72c451425b9",
       "sourceName": "@openzeppelin/contracts/utils/Strings.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -335,14 +335,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol": {
-      "lastModificationDate": 1656170306708,
+      "lastModificationDate": 1656186412310,
       "contentHash": "0e7db055ce108f9da7bb6686a00287c0",
       "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -372,14 +372,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol": {
-      "lastModificationDate": 1656170307277,
+      "lastModificationDate": 1656186412863,
       "contentHash": "03e6768535ac4da0e9756f1d8a4a018a",
       "sourceName": "@openzeppelin/contracts/utils/introspection/IERC165.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -407,14 +407,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/ERC721CopyDistribution.sol": {
-      "lastModificationDate": 1656193130726,
+      "lastModificationDate": 1656212699872,
       "contentHash": "e31dc39d68dde76b8474df9095d6047a",
       "sourceName": "src/backend/contracts/ERC721CopyDistribution.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -452,7 +452,7 @@
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -482,14 +482,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/utils/MemoryStack.sol": {
-      "lastModificationDate": 1656204685791,
+      "lastModificationDate": 1656212699872,
       "contentHash": "f07cf51d5d71ee3aad4161983aa6db85",
       "sourceName": "src/backend/contracts/utils/MemoryStack.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {
@@ -517,14 +517,14 @@
       ]
     },
     "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/utils/MemoryQueue.sol": {
-      "lastModificationDate": 1656204451532,
+      "lastModificationDate": 1656212699872,
       "contentHash": "bc91a0db746d9cf15cac39d5e1eb0833",
       "sourceName": "src/backend/contracts/utils/MemoryQueue.sol",
       "solcConfig": {
         "version": "0.8.15",
         "settings": {
           "optimizer": {
-            "enabled": false,
+            "enabled": true,
             "runs": 200
           },
           "outputSelection": {

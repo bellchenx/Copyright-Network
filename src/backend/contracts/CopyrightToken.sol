@@ -8,7 +8,6 @@ import "./utils/MemoryQueue.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
-    
     uint256 public tokenCount;
 
     uint256[] private _leafTokenIDs;
@@ -36,7 +35,7 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
      */
     function mint(uint256[] memory parentIds, uint256 tokenWeight) external {
         uint256 id = ++tokenCount;
-        _safeMint(_msgSender(), id);
+        _safeMint(msg.sender, id);
         _idToTokens[id].tokenWeight = tokenWeight;
         _idToTokens[id].timeStamp = block.timestamp;
 
@@ -79,6 +78,8 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
         string memory symbol,
         string memory uri
     ) external {
+        require(_exists(id), "The token you make deposit to does not exist.");
+
         require(
             ownerOf(id) == msg.sender,
             "You don't have permission to change info."
@@ -92,6 +93,7 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
      * @dev Distribute copies with new ERC 721 token.
      */
     function distributeCopies(uint256 id) external returns (address) {
+        require(_exists(id), "The token you make deposit to does not exist.");
         require(
             _idToPermissionToDistribute[id],
             "The copyright owner does not allow distribution."
@@ -119,7 +121,7 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
         MemoryQueue queue = new MemoryQueue();
         MemoryStack idStack = new MemoryStack();
         MemoryStack royaltyStack = new MemoryStack();
-        
+
         queue.enqueue(id);
 
         while (!queue.isEmpty()) {
@@ -128,7 +130,7 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
             Token memory token = _idToTokens[tempID];
             Edge[] memory edges = token.edges;
 
-            for(uint256 i = 0; i < edges.length; i ++) {
+            for (uint256 i = 0; i < edges.length; i++) {
                 uint256 royalty = edges[i].weight;
                 uint256 nextID = edges[i].to;
 
@@ -140,24 +142,20 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
         }
 
         uint256 outstandingBalance = msg.value;
-        while(!idStack.isEmpty())
-        {
+        while (!idStack.isEmpty()) {
             uint256 nextID = idStack.pop();
             uint256 payment = royaltyStack.pop();
 
-            if(outstandingBalance < payment)
-            {
+            if (outstandingBalance < payment) {
                 payment = outstandingBalance;
                 payable(ownerOf(nextID)).transfer(payment);
                 break;
-            }
-            else
-            {
+            } else {
                 outstandingBalance -= payment;
                 payable(ownerOf(nextID)).transfer(payment);
             }
         }
-        if(outstandingBalance > 0)
+        if (outstandingBalance > 0)
             payable(ownerOf(id)).transfer(outstandingBalance);
     }
 
@@ -165,6 +163,8 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
      * @dev Change the permission of adoption from this copyright
      */
     function changeAdoptionPermission(uint256 id, bool permission) external {
+        require(_exists(id), "The token you make deposit to does not exist.");
+
         require(
             ownerOf(id) == msg.sender,
             "You don't have permission to change permission."
@@ -178,6 +178,8 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
     function changeDistributionPermission(uint256 id, bool permission)
         external
     {
+        require(_exists(id), "The token you make deposit to does not exist.");
+
         require(
             ownerOf(id) == msg.sender,
             "You don't have permission to change permission."
@@ -188,18 +190,26 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
     // View functions
 
     function getToken(uint256 id) external view returns (Token memory) {
+        require(_exists(id), "The token you make deposit to does not exist.");
+
         return _idToTokens[id];
     }
 
     function isIndependent(uint256 id) external view returns (bool) {
+        require(_exists(id), "The token you make deposit to does not exist.");
+
         return _leafTokenIDIndex[id] > 0;
     }
 
     function doAllowAdoption(uint256 id) external view returns (bool) {
+        require(_exists(id), "The token you make deposit to does not exist.");
+
         return _idToPermissionToAdapteFrom[id];
     }
 
     function doAllowDistribution(uint256 id) external view returns (bool) {
+        require(_exists(id), "The token you make deposit to does not exist.");
+
         return _idToPermissionToDistribute[id];
     }
 
@@ -208,6 +218,8 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
         view
         returns (bool)
     {
+        require(_exists(id), "The token you make deposit to does not exist.");
+
         return address(_distributions[id]) == nftAddress;
     }
 
@@ -220,6 +232,8 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
     }
 
     function getDistributionToken(uint256 id) external view returns (ERC721) {
+        require(_exists(id), "The token you make deposit to does not exist.");
+
         return _distributions[id];
     }
 
