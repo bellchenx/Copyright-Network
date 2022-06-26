@@ -3,6 +3,8 @@ pragma solidity 0.8.15;
 
 import "./interfaces/ICopyrightGraph.sol";
 import "./ERC721CopyDistribution.sol";
+import "./utils/MemoryStack.sol";
+import "./utils/MemoryQueue.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
@@ -24,7 +26,7 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
-    constructor() ERC721("Test Copyright Token", "TCT") Ownable(){
+    constructor() ERC721("Test Copyright Token", "TCT") Ownable() {
         _leafTokenIDs.push(0); // placeholder for the 0 index
     }
 
@@ -113,7 +115,23 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
     function deposit(uint256 id) external payable {
         require(_exists(id), "The token you make deposit to does not exist.");
 
-        // TODO deposit and distribute the revenue. Use BFS and memory queue.
+        MemoryQueue queue = new MemoryQueue();
+        MemoryStack idStack = new MemoryStack();
+        MemoryStack royaltyStack = new MemoryStack();
+        
+        queue.enqueue(id);
+
+        while (!queue.isEmpty()) {
+            uint256 tempID = queue.dequeue();
+            idStack.push(tempID);
+
+            Token memory token = _idToTokens[tempID];
+            Edge[] memory edges = token.edges;
+
+            for(uint256 i = 0; i < edges.length; i ++) {
+                Edge edge
+            }
+        }
     }
 
     /**
@@ -174,11 +192,7 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
         return _leafTokenIDs;
     }
 
-    function getDistributionToken(uint256 id)
-        external
-        view
-        returns (ERC721)
-    {
+    function getDistributionToken(uint256 id) external view returns (ERC721) {
         return _distributions[id];
     }
 
