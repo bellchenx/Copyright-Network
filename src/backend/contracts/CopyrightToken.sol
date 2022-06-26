@@ -8,6 +8,7 @@ import "./utils/MemoryQueue.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
+    
     uint256 public tokenCount;
 
     uint256[] private _leafTokenIDs;
@@ -26,7 +27,7 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
-    constructor() ERC721("Test Copyright Token", "TCT") Ownable() {
+    constructor() ERC721("Non-Fungible Copyright Token", "NFCT") Ownable() {
         _leafTokenIDs.push(0); // placeholder for the 0 index
     }
 
@@ -123,15 +124,41 @@ contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
 
         while (!queue.isEmpty()) {
             uint256 tempID = queue.dequeue();
-            idStack.push(tempID);
 
             Token memory token = _idToTokens[tempID];
             Edge[] memory edges = token.edges;
 
             for(uint256 i = 0; i < edges.length; i ++) {
-                Edge edge
+                uint256 royalty = edges[i].weight;
+                uint256 nextID = edges[i].to;
+
+                queue.enqueue(nextID);
+
+                idStack.push(nextID);
+                royaltyStack.push(royalty);
             }
         }
+
+        uint256 outstandingBalance = msg.value;
+        while(!idStack.isEmpty())
+        {
+            uint256 nextID = idStack.pop();
+            uint256 payment = royaltyStack.pop();
+
+            if(outstandingBalance < payment)
+            {
+                payment = outstandingBalance;
+                payable(ownerOf(nextID)).transfer(payment);
+                break;
+            }
+            else
+            {
+                outstandingBalance -= payment;
+                payable(ownerOf(nextID)).transfer(payment);
+            }
+        }
+        if(outstandingBalance > 0)
+            payable(ownerOf(id)).transfer(outstandingBalance);
     }
 
     /**

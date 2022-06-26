@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/CopyrightToken.sol": {
-      "lastModificationDate": 1656193160507,
-      "contentHash": "72a96119f7087ae0329d23aed21f48ee",
+      "lastModificationDate": 1656212221350,
+      "contentHash": "127e59c9a8a27701b850b73c93944431",
       "sourceName": "src/backend/contracts/CopyrightToken.sol",
       "solcConfig": {
         "version": "0.8.15",
@@ -31,6 +31,8 @@
       "imports": [
         "./interfaces/ICopyrightGraph.sol",
         "./ERC721CopyDistribution.sol",
+        "./utils/MemoryStack.sol",
+        "./utils/MemoryQueue.sol",
         "@openzeppelin/contracts/token/ERC721/ERC721.sol"
       ],
       "versionPragmas": [
@@ -404,41 +406,6 @@
         "IERC165"
       ]
     },
-    "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/MemoryQueue.sol": {
-      "lastModificationDate": 1656195912199,
-      "contentHash": "8ef7feee246ba89c9dca9d33461ce334",
-      "sourceName": "src/backend/contracts/MemoryQueue.sol",
-      "solcConfig": {
-        "version": "0.8.15",
-        "settings": {
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "0.8.15"
-      ],
-      "artifacts": [
-        "MemoryQueue"
-      ]
-    },
     "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/ERC721CopyDistribution.sol": {
       "lastModificationDate": 1656193130726,
       "contentHash": "e31dc39d68dde76b8474df9095d6047a",
@@ -512,6 +479,76 @@
       ],
       "artifacts": [
         "Ownable"
+      ]
+    },
+    "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/utils/MemoryStack.sol": {
+      "lastModificationDate": 1656204685791,
+      "contentHash": "f07cf51d5d71ee3aad4161983aa6db85",
+      "sourceName": "src/backend/contracts/utils/MemoryStack.sol",
+      "solcConfig": {
+        "version": "0.8.15",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.8.15"
+      ],
+      "artifacts": [
+        "MemoryStack"
+      ]
+    },
+    "/Users/bell/STProject/Non-Fungible-Copyright/src/backend/contracts/utils/MemoryQueue.sol": {
+      "lastModificationDate": 1656204451532,
+      "contentHash": "bc91a0db746d9cf15cac39d5e1eb0833",
+      "sourceName": "src/backend/contracts/utils/MemoryQueue.sol",
+      "solcConfig": {
+        "version": "0.8.15",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.8.15"
+      ],
+      "artifacts": [
+        "MemoryQueue"
       ]
     }
   }

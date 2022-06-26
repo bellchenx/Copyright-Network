@@ -14,8 +14,8 @@ describe("CopyrightToken", function () {
 
     describe("Deployment", function () {
         it("should construct ERC721", async function () {
-            expect(await CopyrightToken.name()).to.equal("Test Copyright Token");
-            expect(await CopyrightToken.symbol()).to.equal("TCT");
+            expect(await CopyrightToken.name()).to.equal("Non-Fungible Copyright Token");
+            expect(await CopyrightToken.symbol()).to.equal("NFCT");
         })
     });
 
@@ -96,5 +96,18 @@ describe("CopyrightToken", function () {
             expect(await distributionNFT.contractURI()).to.equal("test");
         })
     })
+
+    describe("Royalty network deposit test", function () {
+        it("should deposit to single copyright token", async function () {
+            await CopyrightToken.mint([], 2, {from: addr1});
+            await CopyrightToken.deposit(1, {from: addr1, value: 100});            
+        })
+
+        it("should deposit to a network copyright token", async function () {
+            await CopyrightToken.mint([], 2, {from: addr1});
+            await CopyrightToken.changeAdoptionPermission(1, true, {from: addr1});
+            
+        })
+    });
 
 });
