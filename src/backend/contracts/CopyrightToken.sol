@@ -5,7 +5,7 @@ import "./interfaces/ICopyrightGraph.sol";
 import "./ERC721CopyDistribution.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract CopyrightToken is ICopyrightGraph, ERC721 {
+contract CopyrightToken is ICopyrightGraph, ERC721, Ownable {
     uint256 public tokenCount;
 
     uint256[] private _leafTokenIDs;
@@ -24,7 +24,7 @@ contract CopyrightToken is ICopyrightGraph, ERC721 {
     /**
      * @dev Initializes the contract by setting a `name` and a `symbol` to the token collection.
      */
-    constructor() ERC721("Test Copyright Token", "TCT") {
+    constructor() ERC721("Test Copyright Token", "TCT") Ownable(){
         _leafTokenIDs.push(0); // placeholder for the 0 index
     }
 
