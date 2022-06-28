@@ -30,13 +30,13 @@ function App() {
     _refer = "",
     _email = "",
     web3;
-
+    
   useEffect(() => {
     function checkConnectedWallet() {
       try {
         const userData = JSON.parse(localStorage.getItem("userAccount"));
         if (userData != null) {
-          onConnect();
+          // onConnect();
         }
       } catch (err) {
         console.log(err);
@@ -73,8 +73,7 @@ function App() {
       saveUserInfo(ethBalance, _account, chainId);
 
       // Load Contract and On-chain Info
-      loadContract();
-      await loadOnChainInfo();
+      await loadContract();
 
       // Set Reload
       window.ethereum.on("accountsChanged", function () {
@@ -93,22 +92,11 @@ function App() {
     setLoading(false);
   };
 
-  const loadContract = () => {
+  const loadContract = async() => {
     const addressJson = address.address;
     const abiJson = abi.abi;
-    _contract = new web3.eth.Contract(abiJson, addressJson);
+    _contract = await new web3.eth.Contract(abiJson, addressJson);
     setContract(_contract);
-  };
-
-  const loadOnChainInfo = async () => {
-    // _id = await _contract.methods._address2id(_account).call();
-    // setID(_id);
-    // if (_id > 0) {
-    //   _email = await _contract.methods._id2email(_id).call();
-    //   setEmail(_email);
-    //   _referralNum = await _contract.methods.referrals(_id).call();
-    //   setReferralNum(_referralNum);
-    // }
   };
 
   const saveUserInfo = (ethBalance, account, chainId) => {
@@ -134,11 +122,23 @@ function App() {
     }
   };
 
+  const mint = async() => {
+    console.log(account);
+    await contract.methods.mint([], 100).send({from: account});
+  };
+
+  const distribute = async() => {
+    console.log(await contract.methods.distributeCopies(2).send({from: account}));
+  };
+
   return (
     <div className="App">
       <div className="react-container">
         {isConnected ? (
           <div style={{ height: 1000 }}>
+            <button onClick={mint}>mint copyright</button>
+            <br/>
+            <button onClick={distribute}>distribute NFT copy</button>
             <OverviewFlow />
           </div>
         ) : (

@@ -28,12 +28,12 @@ module.exports = {
       allowUnlimitedContractSize: true,
       blockGasLimit: 0x1fffffffffffff,
     },
-    /*
+    
       mumbai: {
          url: process.env.API_URL_MUMBAI,
          accounts: [process.env.PRIVATE_KEY],
       }
-      */
+      
   },
   solidity: {
     version: "0.8.15",
